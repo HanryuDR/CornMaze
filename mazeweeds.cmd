@@ -1,0 +1,1 @@
+put .mazetask pull weeds
