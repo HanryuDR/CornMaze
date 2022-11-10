@@ -18,6 +18,9 @@
 #   elengantly starts at the halfling
 #I just found a situation where if you get two landmark touch tasks in a row, the script will just keep looping since there aren't 20 things on the route.  I paused, ran to other parts of the maze, touched manually, resumed, typed task to trigger the "you're done" message and it finished.  I'll probably hard-code all the searchables to the touch task now.... but that's for next year.
 #I added a few landmarks, up to 14 now I think
+# 2022-11-10
+#   into the repo
+#   add variable setting before gosub
 #debug 5
 
 #### LOAD VARS ####
@@ -25,8 +28,8 @@ eval Scriptname titlecase(%scriptname)
 eval SCRIPTNAME tocaps(%scriptname)
 put #echo >User #FF00FF >%SCRIPTNAME: $time
 var totaltime $gametime
-var path #goto 2|e|e|e|e|e|e|e|sw|n|w|s|w|w|s|e|s|ne|w|w|s|w|n|n|w|w|s|s|e|n|e|s|e|s|sw|n|w|w|s|e|s|n|w|s|s|s|s|s|s|s|e|w|s|e|e|w|s|w|s|go tunnel|s|s|go tunnel|n|n|#goto 99|#goto 52|#goto 59|#goto 61|#goto 79|#goto 96|#goto 93|#goto 86|#goto 79
-var pathID 2|3|4|5|6|7|8|9|10|8|7|16|18|11|12|19|20|17|19|12|13|21|22|23|24|25|26|27|28|29|22|21|13|14|15|30|31|32|33|34|35|34|33|36|37|38|39|40|41|42|43|42|44|45|46|45|47|48|49|102|103|104|150|151|152|99|52|59|61|79|96|93|86|79
+var path #goto 2|e|e|e|e|e|e|e|sw|n|w|s|w|w|s|e|s|ne|w|w|s|w|n|n|w|w|s|s|e|n|e|s|e|s|sw|n|w|w|s|e|s|n|w|s|s|s|s|s|s|s|e|w|s|e|e|w|s|w|s|go tunnel|s|s|go tunnel|n|n|#goto 99|#goto 52|#goto 59|#goto 61|#goto 79|#goto 69|#goto 96|#goto 93|#goto 86
+var pathID 2|3|4|5|6|7|8|9|10|8|7|16|18|11|12|19|20|17|19|12|13|21|22|23|24|25|26|27|28|29|22|21|13|14|15|30|31|32|33|34|35|34|33|36|37|38|39|40|41|42|43|42|44|45|46|45|47|48|49|102|103|104|150|151|152|99|52|59|61|79|69|96|93|86
 eval moveCount countsplit("%path", "|")
 var c 0
 var done 0

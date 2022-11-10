@@ -28,6 +28,8 @@
 # 2022-11-08
 #   O2 conversion
 #   elegant location identification
+# 2022-11-10
+#   into the repo
 #debug 5
 
 #### LOAD VARS ####
@@ -285,4 +287,4 @@ goto Lost
 ####
 
 ####  COMMON SUBROUTINES  ####
-include commonINC
+include mazeINC

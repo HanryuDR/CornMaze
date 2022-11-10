@@ -9,6 +9,8 @@
 # 2022-11-08
 #   Copied mazesearch
 #   integrating all the scripts that don't leave the first area
+# 2022-11-10
+#   into the repo
 #debug 5
 
 if matchre("%0", "help|HELP|Help|^$") then {
@@ -87,7 +89,7 @@ end:
   exit
 
 ####  COMMON SUBROUTINES  ####
-include commonINC
+include mazeINC
 
 #### TIME TO PICK SOME CORN ####
 #### TIME TO WEED THE FIELDS ####

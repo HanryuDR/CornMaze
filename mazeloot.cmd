@@ -17,6 +17,8 @@
 # 2022-11-07
 #   bug where goes GOTO retreat instead of return afterkill
 #   Update for O2
+# 2022-11-10
+#   into the repo
 #debug 5
 
 #### LOAD VARS ####

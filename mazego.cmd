@@ -1,4 +1,14 @@
 #mazego.cmd
+# .mazego
+#  start me at the halfing
+#
+# written by Hanryu
+# Please report any bugs to Hanryu#0052 (Discord) or sauva@play.net
+# This script may be reused in whole or in part as long as credit is given
+# This script is designed to use Oulander, http://outlanderapp.com
+# 2022-11-10
+#   initial release
+#   into the repo
 
 put ticket
 waitforre Corn Maze - (\d*) kernels.
@@ -20,6 +30,8 @@ send ASK HALF ABOUT ACCESS
 waitfor Stay close, I'll escort you in...
 send put my corn pass in my $container_cloak
 pause 0.1
+if ("$righthand" != "Empty") then {send stow right}
+if ("$lefthand" != "Empty") then {send stow left}
 
 put #var roomid 2
 pause 0.1
