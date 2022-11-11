@@ -17,6 +17,9 @@
 #   Update for O2
 # 2022-11-10
 #   into the repo
+# 2022-11-11
+#   Looks like different characters get different scream messages, so changed match
+#   now with mazeINC
 #debug 5
 
 #### LOAD VARS ####
@@ -91,62 +94,20 @@ end:
   if matchre("%minutes", "(\d+)\.\d*") then {var minutes $1}
   put #printbox %SCRIPTNAME took %minutes:%seconds (min)
   put #echo >user <%SCRIPTNAME: %minutes:%seconds
+  put #echo >talk <%SCRIPTNAME: %minutes:%seconds
   put #parse ** MAZETASK DONE **
   exit
 
+####  COMMON SUBROUTINES  ####
+include mazeINC
+
 #### PURIEL WITH THE SCREAMY WEAMYS ####
 scream:
-  matchre scream \.\.\.wait|^Sorry,
-  match returner You lift
-  match returner You've aready
+  if ($roundtime > 0) then {pause $pauseTime}
+  if (($webbed) || ($stunned)) then {pause 0.1}
+  matchre scream ^\.\.\.wait|^Sorry,|^You can't do that while entangled|^You are still
+  matchre returner ^The sound carries through the maze|^You've aready
   put scream
-  put task
-  matchwait
+  matchwait 1
+  goto scream
 ####
-
-#### MOVER ####
-mover:
-  var direction &0
-remover:
-  if ($standing != 1) then {put stand}
-  if (%done) then {match done cheerful Halfling}
-  matchre remover \.\.\.wait|^Sorry,|You stand|You are still stunned\.
-  matchre returner ^Obvious
-  match moveError You can't go there.
-  match retreat You are engaged
-  put %direction
-  matchwait
-
-moveError:
-  echo **********************************
-  echo **  You screwed up the script!  **
-  echo **  Try to get back on track.   **
-  echo **  Type YES to continue.       **
-  echo **********************************
-  waitfor A good positive attitude never hurts.
-  goto returner
-####
-
-#### STAND ####
-stand:
-  matchre stand \.\.\.wait|^Sorry,|cannot manage to stand\.|The weight of all your possessions
-  matchre return You stand|You are already standing
-  put stand
-  matchwait
-####
-
-#### RETREAT and MOVE ####
-retreat:
-  match retreat ...wait
-  match retreat Sorry,
-  match retreat You retreat back
-  match mover You retreat from combat
-  match mover You are already as far away as you can get!
-  put retreat
-  matchwait
-####
-
-#### RETURN ####
-return:
-returner:
-  return

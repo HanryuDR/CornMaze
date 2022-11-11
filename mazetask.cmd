@@ -84,6 +84,7 @@ done:
   eval minutes floor(%minutes)
   put #printbox %SCRIPTNAME took %minutes:%seconds (min)
   put #echo >user <%SCRIPTNAME: %minutes:%seconds
+  put #echo >talk <%SCRIPTNAME: %minutes:%seconds
   put #parse ** MAZETASK DONE **
 end:
   exit
@@ -127,6 +128,7 @@ trapDisarm:
 ####
 
 #### DO YOU WANNA BUILD A SCARECROW? ####
+scarecrow:
 build.scarecrow:
   if ($roundtime > 0) then {pause $pauseTime}
   if (($webbed) || ($stunned)) then {pause 0.1}
