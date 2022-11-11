@@ -156,7 +156,8 @@ AdvancePathIDValue:
   #poke done, loop ahead to next area
   math c add 1
   if (%c >= %moveCount) then {goto done}
-  delay $automapper.loop
+  eval temp %c % 6
+  if (%temp) then {delay $automapper.loop}
   if !contains("%path[%c]", "#goto") then {goto AdvancePathIDValue}
   #gotta subtract, because you're about to advance the counter as soon as you return
   math c subtract 1
@@ -221,6 +222,7 @@ end:
   if matchre("%minutes", "(\d+)\.\d*") then {var minutes $1}
   put #printbox %SCRIPTNAME took %minutes:%seconds (min)
   put #echo >user <%SCRIPTNAME: %minutes:%seconds
+  put #echo >talk <%SCRIPTNAME: %minutes:%seconds
   put #parse ** MAZETASK DONE **
   exit
 

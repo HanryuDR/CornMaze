@@ -20,7 +20,7 @@
 # 2021-11-10
 #  put #goto 123 from 45
 # 2021-11-12
-#  fix %c loopahead, added more combat options
+#  fix %c loopahead, added more kill options
 # 2021-11-15
 #   Its mostly ok now, removing a lot of the debug stuff
 # 2022-11-07
@@ -57,13 +57,15 @@ var landmark 0
 var landmarkTime 0
 var poke 0
 var pokeTime 0
-var combat 0
-var combatTime 0
+var kill 0
+var killTime 0
 var TotalKernels 0
 put #var AlreadyLooted False
-var searchables rake|pile|stones|hay|wood|basket|boulder|wheel|spiderweb|straw|statue|pail|fence|wagon|burrow|hut
-var landmarks rake|stones|hay|wood|basket|boulder|wheel|spiderweb|straw|statue|pail|fence|wagon|burrow|hut|scarecrow
+var searchables basket|boulder|burrow|fence|hay|hut|pail|rake|spiderweb|statue|stones|straw|wagon|wheel|wood
+var landmarks altar|basket|boulder|burrow|fence|hay|hut|pail|rake|scarecrow|spiderweb|statue|stones|straw|wagon|wheel|wood
 var junk_list
+#for early shutdown of script
+var Kill 0
 
 #### PATHS ####
 var path #goto 2|e|e|e|e|e|e|e|sw|n|w|s|w|w|s|e|s|ne|w|w|s|w|n|n|w|w|s|s|e|n|e|s|e|s|sw|n|w|w|s|e|s|n|w|s|s|s|s|s|s|s|e|w|s|e|e|w|s|w|s
@@ -72,51 +74,38 @@ eval moveCount countsplit("%path", "|")
 
 #### LOAD ACTIONS ####
 action goto done when "leads you through the twisting passages and brings you to the exit"
-action put #echo >talk #FFFF00 $1 minutes remaining! when "^A barefoot Halfling trots up to you and says, .Hey, just to let you know you've only got (.+) minutes of time left"
+action put #echo >talk #FFFF00 $1 minutes remaining! when "^A barefoot Halfling trots up to you and says, .Hey, just to let you know you've only got (.+) minutes? of time left"
 action put #echo >talk #00FF00 +$1 Kernels!!;math TotalKernels add $1 when "He dumps (\d+) silver kernels into your bottle and says"
 action put #echo >talk #FFFF00 +20 Kernels from $1 KILL!;math TotalKernels add 20 when "^A shower of tiny silver kernels falls from the (Spider|Scarecrow)"
-action put #echo >talk #FFFF00 +$1 Kernels from BossKill! when "^You quickly scoop (\w+) of them, stashing them in your bottle."
-action (whattask) var task scarecrow when "need to BUILD SCARECROW"
-action (whattask) var task weeds when "need to walk around the maze and PULL WEED"
-action (whattask) var task traps when "need to first SEARCH out a trap in each room"
-action (whattask) var task grasshopper when "need to SEARCH in the rooms to find and catch the grasshoppers"
-action (whattask) var task token when "move around and SEARCH to find golden tokens"
-action (whattask) var task corn when "need to FORAGE CORN inside the maze"
-action (whattask) var task mice when "need to WAVE to scare off the mice"
-action (whattask) var task scream when "need to move to different rooms in the maze and SCREAM"
-action (whattask) var task landmark when "need to go around finding landmarks"
-action (whattask) var task poke when "need to go up to each Halfling and POKE them"
-action (whattask) var task combat when "just kill \w+"
-action var $1 $2;put #echo >User #FF6666 %scriptname - SET [$1] TO [$2] when "^-setlocal maze.*? (\S+) (.*)"
 action put #echo >talk Boss $1 Active!;put #var AlreadyLooted False when "^You hear sinister laughter as the (Scarecrow) freely roams the ripened field of the Corn Maze!$|^You hear sinister laughter as the (Scarecrow) invades the Corn Maze!|^A hissing sound echoes through the Corn Maze as Harawep's (Spider) makes its appearance!|^You hear hissing noises as Harawep's (Spider) freely roams the green growth of the Corn Maze!"
+action var $1 $2;put #echo >User #FF6666 %scriptname - SET [$1] TO [$2] when "^-setlocal %scriptname (\S+) (.*)"
 
+#### ABORTS and PREP ####
 put #window show talk
 
 #### GET A TASK ####
 ask:
+#for early shutdown of script
+  if (%Kill) then {goto done}
   if !matchre("$monsterlist", "Halfling") then {goto HeadOfMaze}
   if ($roundtime > 0) then {pause $pauseTime}
   if (($webbed) || ($stunned)) then {pause 0.1}
   matchre ask ^\.\.\.wait|^Sorry,|^You are still stun|^You can't do that while entangled
-  match doWhat Sure, I can give you a task to complete!
   match HeadOfMaze To whom are you
-  match combatPause You'll need to wait a bit before you can have another one.
+  match killPause You'll need to wait a bit before you can have another one.
+  matchre doWhat ^The Halfling looks at a scrap of paper in his pocket, then nods.+(token|poke|trap|scarecrow|corn|kill|scream|grasshopper|weeds|mice|landmark)
   put ask halfling about task
   put ask halfling for task
   matchwait
 doWhat:
-  action (whattask) on
-  put task
-  put wait
-  waitforre ^Time drags
-  action (whattask) off
+  var task $1
   math %task add 1
   math task_count add 1
   var list_of_task %list_of_task|%task
-  eval good_task %task_count - %combat - 1
+  eval good_task %task_count - %kill - 1
   var taskTimeVar $gametime
-  put #echo >talk #FFFF00 Maze Task: %task, Assigned: %task_count / Canceled: %combat / Finished: %good_task
-  if ("%task" = "combat") then {goto combat}
+  put #echo >talk #FFFF00 Maze Task: %task, Assigned: %task_count / Canceled: %kill / Finished: %good_task
+  if ("%task" = "kill") then {goto kill}
 #find the index of the $halfling room
   eval c replacere("%pathID", "\b$halfling\b.*", "")
   eval c count("%c", "|")
@@ -124,8 +113,10 @@ doWhat:
     put #printbox Halfling is not on the path!
     exit
     }
-  put #printbox I think the TaskGiver is in roomid: $roomid|c: %c|Room set correctly?|Type YES to go do the task.
-  waitforre ^A good positive attitude never hurts
+  if (($mazeConfirm) || ($roomid != %pathID[%c])) then {
+    put #printbox I think the TaskGiver is in roomid: $roomid|c: %c|Room set correctly?|Type YES to go do the task.
+    waitforre ^A good positive attitude never hurts
+    }
   put #var halfling $roomid
   put .maze%task
   waitfor ** MAZETASK DONE **
@@ -141,7 +132,7 @@ done:
   gosub clear
   pause 1
 end:
-  put #printbox Completed %task_count tasks.|  built %scarecrow scarecrows (%scarecrowTime)|  pull %weeds weeds (%weedsTime)|  disarmed %traps trap (%trapsTime)|  found %grasshopper grasshoppers (%grasshopperTime)|  found %token tokens (%tokenTime)|  foraged %corn corn (%cornTime)|  scared %mice mice (%miceTime)|  yelled %scream times (%screamTime)|  touched %landmark landmarks (%landmarkTime)|  poked %poke halflings (%pokeTime)|  wasted time = %combat (%combatTime)|List of task: %list_of_task|TOTAL KERNELS EARNED: %TotalKernels
+  put #printbox Completed %task_count tasks.|  built %scarecrow scarecrows (%scarecrowTime)|  pull %weeds weeds (%weedsTime)|  disarmed %traps trap (%trapsTime)|  found %grasshopper grasshoppers (%grasshopperTime)|  found %token tokens (%tokenTime)|  foraged %corn corn (%cornTime)|  scared %mice mice (%miceTime)|  yelled %scream times (%screamTime)|  touched %landmark landmarks (%landmarkTime)|  poked %poke halflings (%pokeTime)|  wasted time = %kill (%killTime)|List of task: %list_of_task|TOTAL KERNELS EARNED: %TotalKernels
   exit
 ####
 
@@ -195,10 +186,10 @@ findTaskGiver:
 ####
 
 #### BE A LOVER NOT A FIGHTER ####
-combat:
+kill:
   if ($roundtime > 0) then {pause $pauseTime}
   if (($webbed) || ($stunned)) then {pause 0.1}
-  matchre combat \.\.\.wait|^Sorry,|TASK CANCEL again
+  matchre kill \.\.\.wait|^Sorry,|TASK CANCEL again
   match canceledTask Your current task has been canceled
   put task cancel
   matchwait
@@ -209,32 +200,32 @@ goloot:
   put #printbox I think the TaskGiver is in room $roomid|Room set correctly?|Type YES to go LOOTING|HUM HAPPY to go MURDERING maze bosses|WAIT to just wait it out
   matchre lootrun ^A good positive attitude never hurts
   matchre bossrun ^You hum
-  matchre combatPause Time drags on by...
+  matchre killPause Time drags on by...
   matchwait 285
-  goto combatPause
+  goto killPause
 
 lootrun:
   if matchre("$AlreadyLooted", "true|True|TRUE") then {goto bossrun}
   put .mazeloot
   waitfor ** MAZETASK DONE **
   put #var AlreadyLooted True
-  goto combatPause
+  goto killPause
 
 bossrun:
   put .mazeboss
   waitfor ** MAZETASK DONE **
-  goto combatPause
+  goto killPause
 
-combatPause:
+killPause:
   if (%pauseTime > $gametime) then {
     eval pauseTime %pauseTime - $gametime
     put #printbox Pausing %pauseTime seconds
     pause %pauseTime
-    eval combatTime $gametime - %taskTimeVar
+    eval killTime $gametime - %taskTimeVar
   }
   else {
     pause 1
-    math combatTime add 1
+    math killTime add 1
     }
   var task
   var taskTimeVar

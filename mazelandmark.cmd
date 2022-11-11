@@ -101,6 +101,7 @@ end:
   if matchre("%minutes", "(\d+)\.\d*") then {var minutes $1}
   put #printbox %SCRIPTNAME took %minutes:%seconds (min)
   put #echo >user <%SCRIPTNAME: %minutes:%seconds
+  put #echo >talk <%SCRIPTNAME: %minutes:%seconds
   put #parse ** MAZETASK DONE **
   exit
 

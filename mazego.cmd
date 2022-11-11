@@ -10,9 +10,11 @@
 #   initial release
 #   into the repo
 
+var startKernel 0
 put ticket
-waitforre Corn Maze - (\d*) kernels.
-var startKernel $1
+put yes
+waitforre Corn Maze - (\d*) kernels|A good positive
+if ($1 > 0) then {var startKernel $1}
 
 send get my corn pass
 wait
