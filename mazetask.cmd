@@ -57,6 +57,7 @@ HeadofMaze:
 
 loop:
   gosub %do
+  put #class +combat
   delay $pauseTime
   if ($roomid != %pathID[%c]) then {put #var roomid %pathID[%c]}
   if (%done) then {goto done}
@@ -118,6 +119,7 @@ forage.corn:
 
 #### DISARM TRAPS IN THE MAZE ####
 trapDisarm:
+  put #class -combat
   if ($roundtime > 0) then {pause $pauseTime}
   if (($webbed) || ($stunned)) then {pause 0.1}
   matchre trapDisarm ^\.\.\.wait|^Sorry,|^You are still stun|^You can't do that while entangled

@@ -202,6 +202,7 @@ stowError3:
 ####
 
 done:
+  put #class +combat
   gosub clear
   delay 0.2
   put #printbox CURRENT ROOM: $roomid, PATHID: pathID[%c], HALFLING: $halfling

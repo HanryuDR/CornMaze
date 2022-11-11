@@ -30,7 +30,10 @@
 #   elegant location identification
 # 2022-11-10
 #   into the repo
-#debug 5
+# 2022-11-11
+#   new way of handling tasks
+#   gosub call
+debug 5
 
 #### LOAD VARS ####
 var task
@@ -47,8 +50,8 @@ var grasshopper 0
 var grasshopperTime 0
 var token 0
 var tokenTime 0
-var corn 0
-var cornTime 0
+var forage 0
+var forageTime 0
 var mice 0
 var miceTime 0
 var scream 0
@@ -93,12 +96,13 @@ ask:
   matchre ask ^\.\.\.wait|^Sorry,|^You are still stun|^You can't do that while entangled
   match HeadOfMaze To whom are you
   match killPause You'll need to wait a bit before you can have another one.
-  matchre doWhat ^The Halfling looks at a scrap of paper in his pocket, then nods.+(token|poke|trap|scarecrow|corn|kill|scream|grasshopper|weeds|mice|landmark)
+  matchre doWhat ^(?:A cheerful Halfling smiles happily at you and replies|The Halfling looks at a scrap of paper in his pocket, then nods.+)(forage|grasshopper|kill|landmark|mice|poke|scarecrow|scream|token|traps|weeds)
   put ask halfling about task
   put ask halfling for task
   matchwait
 doWhat:
   var task $1
+  if matchre("%task", "\$1") then {goto ask}
   math %task add 1
   math task_count add 1
   var list_of_task %list_of_task|%task
@@ -118,8 +122,7 @@ doWhat:
     waitforre ^A good positive attitude never hurts
     }
   put #var halfling $roomid
-  put .maze%task
-  waitfor ** MAZETASK DONE **
+  gosub callmaze%task
   eval %taskTime $gametime - %taskTimeVar
   var task
   var taskTimeVar
@@ -132,7 +135,7 @@ done:
   gosub clear
   pause 1
 end:
-  put #printbox Completed %task_count tasks.|  built %scarecrow scarecrows (%scarecrowTime)|  pull %weeds weeds (%weedsTime)|  disarmed %traps trap (%trapsTime)|  found %grasshopper grasshoppers (%grasshopperTime)|  found %token tokens (%tokenTime)|  foraged %corn corn (%cornTime)|  scared %mice mice (%miceTime)|  yelled %scream times (%screamTime)|  touched %landmark landmarks (%landmarkTime)|  poked %poke halflings (%pokeTime)|  wasted time = %kill (%killTime)|List of task: %list_of_task|TOTAL KERNELS EARNED: %TotalKernels
+  put #printbox Completed %task_count tasks.|  built %scarecrow scarecrows (%scarecrowTime)|  pull %weeds weeds (%weedsTime)|  disarmed %traps trap (%trapsTime)|  found %grasshopper grasshoppers (%grasshopperTime)|  found %token tokens (%tokenTime)|  foraged %forage corn (%forageTime)|  scared %mice mice (%miceTime)|  yelled %scream times (%screamTime)|  touched %landmark landmarks (%landmarkTime)|  poked %poke halflings (%pokeTime)|  wasted time = %kill (%killTime)|List of task: %list_of_task|TOTAL KERNELS EARNED: %TotalKernels
   exit
 ####
 
@@ -206,14 +209,12 @@ goloot:
 
 lootrun:
   if matchre("$AlreadyLooted", "true|True|TRUE") then {goto bossrun}
-  put .mazeloot
-  waitfor ** MAZETASK DONE **
+  gosub call mazeloot
   put #var AlreadyLooted True
   goto killPause
 
 bossrun:
-  put .mazeboss
-  waitfor ** MAZETASK DONE **
+  gosub call mazeboss
   goto killPause
 
 killPause:

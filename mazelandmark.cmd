@@ -21,6 +21,9 @@
 # 2022-11-10
 #   into the repo
 #   add variable setting before gosub
+# 2022-11-11
+#   mazeINC
+#   touchVar
 #debug 5
 
 #### LOAD VARS ####
@@ -66,17 +69,9 @@ loop:
     put #var roomid 39
     goto Start
     }
-  if contains("%path[%c]", "#goto") then {
-    put %path[%c]
-    waitforre You are already here|YOU HAVE ARRIVED!
-    delay $pauseTime
-    if matchre("$roomobjs", "\b(altar|basket|boulder|burrow|fencepost|hay|hut|pail|rake|scarecrow|spiderweb|statue|stones|straw|wagon|wheelbarrow|wood)\b") then {
-      var searchitem $1
-      gosub research
-      }
-    }
-  else {gosub mover}
+  gosub mover %path[%c]
   delay $pauseTime
+  if matchre("$roomobjs", "\b(altar|basket|boulder|burrow|fencepost|hay|hut|pail|rake|scarecrow|spiderweb|statue|stones|straw|wagon|wheelbarrow|wood)\b") then {gosub touch $1}
   if ($roomid != %pathID[%c]) then {put #var roomid %pathID[%c]}
   goto loop
 
@@ -84,7 +79,6 @@ done:
   gosub clear
   delay 0.2
   put #printbox CURRENT ROOM: $roomid, PATHID: pathID[%c], HALFLING: $halfling
-#  put #goto $halfling from %pathID[%c]
   put #goto $halfling
   waitforre You are already here|YOU HAVE ARRIVED!
   delay 0.2
@@ -105,66 +99,17 @@ end:
   put #parse ** MAZETASK DONE **
   exit
 
-#### MOVER ####
-mover:
-remover:
-  if ($roundtime > 0) then {pause $pauseTime}
-  if (($webbed) || ($stunned)) then {pause 0.1}
-  if (!$standing) then {gosub stand}
-  matchre remover ^\.\.\.wait|^Sorry,|^You are still stun|^You can't do that while entangled
-  matchre touch \b(altar|basket|boulder|burrow|fencepost|hay|hut|pail|rake|scarecrow|spiderweb|statue|stones|straw|wagon|wheelbarrow|wood)\b
-  matchre returner ^(?:Obvious|Ship) (?:paths|exits):
-  match moveError You can't go there.
-  match retreat You are engaged
-  put %path[%c]
-  matchwait
-
-moveError:
-  echo **********************************
-  echo **  You screwed up the script!  **
-  echo **  Try to get back on track.   **
-  echo **  Type YES to continue.       **
-  echo **********************************
-  waitfor A good positive attitude never hurts.
-  goto returner
-####
-
-#### STAND ####
-stand:
-  if ($roundtime > 0) then {pause $pauseTime}
-  if (($webbed) || ($stunned)) then {pause 0.1}
-  match dead You are a ghost!
-  matchre stand ^\.\.\.wait|^Sorry,|^You can't do that while entangled|^You are still
-  matchre return ^You (?:stand|are already standing)
-  matchre stand ^You must stand first\.$|^You are so unbalanced you cannot manage to stand\.$|^The weight of all your possessions prevents you from standing\.$
-  put stand
-  matchwait
-####
-
-#### RETREAT ####
-retreat:
-  if ($roundtime > 0) then {pause $pauseTime}
-  if (($webbed) || ($stunned)) then {pause 0.1}
-  matchre retreat ^\.\.\.wait|^Sorry,|^You are still stun|^You can't do that while entangled|^You (?:try to sneak|sneak|retreat back)|discovers you trying to sneak out
-  matchre mover ^You (?:are already |sneak back out of combat|retreat from combat)
-  put retreat;retreat
-  matchwait
-####
+####  COMMON SUBROUTINES  ####
+include mazeINC
 
 #### TOUCHY TOUCHY ####
 touch:
-  var searchitem $1
-research:
+  var touchVar &0
+retouch:
   if ($roundtime > 0) then {pause $pauseTime}
   if (($webbed) || ($stunned)) then {pause 0.1}
-  matchre research ^\.\.\.wait|^Sorry,|^You can't do that while entangled|^You are still
+  matchre retouch ^\.\.\.wait|^Sorry,|^You can't do that while entangled|^You are still
   matchre returner ^You reach out|^A tingle runs|^Touch what|^You've already|^You're pretty sure
-  put touch %searchitem
+  put touch %touchVar
   matchwait
-####
-
-#### RETURN ####
-return:
-returner:
-  return
 ####

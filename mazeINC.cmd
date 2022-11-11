@@ -10,6 +10,8 @@
 # 2022-11-10
 #   copied commonINC
 #   inital released
+# 2022-11-11
+#   gosub call
 
 #### STOW (or PUT ___ in _____) ####
 stow:
@@ -115,4 +117,37 @@ stand:
   matchre stand ^You must stand first\.$|^You are so unbalanced you cannot manage to stand\.$|^The weight of all your possessions prevents you from standing\.$
   put stand
   matchwait
+####
+
+#### RELEASE ####
+release:
+  var releaseVar &0
+release_retry:
+  var targeting 0
+  var prepping 0
+  put #var preparedspell None
+  put #var fullprep 0
+  if ($roundtime > 0) then {pause $pauseTime}
+  if (($webbed) || ($stunned)) then {pause 0.1}
+  matchre release_retry ^\.\.\.wait|^Sorry,|^You are still stunned\.|^You can't do that while entangled
+  matchre return ^Release what|^You fade into view|^You let your concentration|^You aren't preparing|^You release|^As your Skein of Shadows disperses|^The shimmering ethereal shield|^The air around you shimmers|^Your skin loses its|^Your body feels more weighty and inflexible|^You sense the sliver|^The world seems to|^You have no cyclic|^The lingering effects of your|^As the Absolution spell fails|^Your increased sense
+  put release %releaseVar
+  matchwait 5
+  put #echo #FF6600 DEBUG: release timed out
+  put #echo >talk #FF6600 [$time]DEBUG: release timed out
+  wait
+  goto release
+####
+
+#### CALL a script and wait for it to finish ####
+call:
+  var callVar &0
+  if matchre("%callVar", "travel") then {gosub clearWindow}
+  eval CALLVAR tocaps(&1)
+  put .%callVar
+callError:
+  matchre return ^\*\* %CALLVAR DONE \*\*|^MOVE ON
+  matchwait
+  put #printbox CALL ERROR|matchwait fell thru|%CALLVAR|%callVar
+  goto callError
 ####
