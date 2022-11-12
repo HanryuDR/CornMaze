@@ -33,7 +33,7 @@
 # 2022-11-11
 #   new way of handling tasks
 #   gosub call
-debug 5
+#debug 5
 
 #### LOAD VARS ####
 var task
@@ -96,13 +96,13 @@ ask:
   matchre ask ^\.\.\.wait|^Sorry,|^You are still stun|^You can't do that while entangled
   match HeadOfMaze To whom are you
   match killPause You'll need to wait a bit before you can have another one.
-  matchre doWhat ^(?:A cheerful Halfling smiles happily at you and replies|The Halfling looks at a scrap of paper in his pocket, then nods.+)(forage|grasshopper|kill|landmark|mice|poke|scarecrow|scream|token|traps|weeds)
+  matchre doWhat ^(?:A cheerful Halfling smiles happily at you and replies|The Halfling looks at a scrap of paper in his pocket, then nods).+(forage|grasshopper|kill|landmark|mice|poke|scarecrow|scream|token|traps|weeds)
   put ask halfling about task
   put ask halfling for task
   matchwait
 doWhat:
+  if contains("$1", "$") then {goto ask}
   var task $1
-  if matchre("%task", "\$1") then {goto ask}
   math %task add 1
   math task_count add 1
   var list_of_task %list_of_task|%task
@@ -118,11 +118,11 @@ doWhat:
     exit
     }
   if (($mazeConfirm) || ($roomid != %pathID[%c])) then {
-    put #printbox I think the TaskGiver is in roomid: $roomid|c: %c|Room set correctly?|Type YES to go do the task.
+    put #printbox I think the TaskGiver is in roomid: $roomid|pathID[c] = %pathID[%c]|Room set correctly?|Type YES to go do the task.
     waitforre ^A good positive attitude never hurts
     }
   put #var halfling $roomid
-  gosub callmaze%task
+  gosub call maze%task
   eval %taskTime $gametime - %taskTimeVar
   var task
   var taskTimeVar
@@ -135,7 +135,7 @@ done:
   gosub clear
   pause 1
 end:
-  put #printbox Completed %task_count tasks.|  built %scarecrow scarecrows (%scarecrowTime)|  pull %weeds weeds (%weedsTime)|  disarmed %traps trap (%trapsTime)|  found %grasshopper grasshoppers (%grasshopperTime)|  found %token tokens (%tokenTime)|  foraged %forage corn (%forageTime)|  scared %mice mice (%miceTime)|  yelled %scream times (%screamTime)|  touched %landmark landmarks (%landmarkTime)|  poked %poke halflings (%pokeTime)|  wasted time = %kill (%killTime)|List of task: %list_of_task|TOTAL KERNELS EARNED: %TotalKernels
+  put #printbox ~~FINISHED MAZE @ $time~~|Completed %task_count tasks.|  built %scarecrow scarecrows (%scarecrowTime)|  pull %weeds weeds (%weedsTime)|  disarmed %traps trap (%trapsTime)|  found %grasshopper grasshoppers (%grasshopperTime)|  found %token tokens (%tokenTime)|  foraged %forage corn (%forageTime)|  scared %mice mice (%miceTime)|  yelled %scream times (%screamTime)|  touched %landmark landmarks (%landmarkTime)|  poked %poke halflings (%pokeTime)|  wasted time = %kill (%killTime)|List of task: %list_of_task|TOTAL KERNELS EARNED: %TotalKernels
   exit
 ####
 

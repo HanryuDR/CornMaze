@@ -146,7 +146,7 @@ call:
   eval CALLVAR tocaps(&1)
   put .%callVar
 callError:
-  matchre return ^\*\* %CALLVAR DONE \*\*|^MOVE ON
+  matchre return ^\*\* %CALLVAR DONE \*\*|^\*\* MAZETASK DONE \*\*|^MOVE ON
   matchwait
   put #printbox CALL ERROR|matchwait fell thru|%CALLVAR|%callVar
   goto callError
