@@ -10,7 +10,7 @@
 #2020
 #   initial release
 #2021-11-09
-#   speed run if $AlreadyLooted True
+#   speed run if $mazeLooted True
 #   added retreat after killing the KillBoss
 #   changed KillBoss to goto and retreat to remover
 #2021-11-11
@@ -79,7 +79,7 @@ remover:
   if (($webbed) || ($stunned)) then {pause 0.1}
   if ($standing != 1) then {gosub stand}
   matchre remover ^\.\.\.wait|^Sorry,|You must be standing
-  if ("$AlreadyLooted" != "True") then {matchre search \b(altar|basket|boulder|burrow|fencepost|hay|hut|pail|rake|spiderweb|statue|stone|straw|wagon|wheelbarrow|wood)\b}
+  if (!$mazeLooted) then {matchre search \b(altar|basket|boulder|burrow|fencepost|hay|hut|pail|rake|spiderweb|statue|stone|straw|wagon|wheelbarrow|wood)\b}
   match stun You are still stunned.
   matchre returner ^Obvious
   match moveError You can't go there.
@@ -146,7 +146,8 @@ repoke:
   match pokePause You think that definitely counted toward your
   matchre returner ^What were you referring|^You're pretty sure you're|^A cheerful Halfling squirms and laughs at
   put poke %pokeVar
-  matchwait
+  matchwait 3
+  goto repoke
 pokePause:
   delay $pauseTime
   pause $pauseTime

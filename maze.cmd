@@ -33,6 +33,9 @@
 # 2022-11-11
 #   new way of handling tasks
 #   gosub call
+# 2022-11-12
+#   added gaming the system for more kernles as the last task
+#   Address issues 2 and 3
 #debug 5
 
 #### LOAD VARS ####
@@ -63,7 +66,7 @@ var pokeTime 0
 var kill 0
 var killTime 0
 var TotalKernels 0
-put #var AlreadyLooted False
+put #var mazeLooted 0
 var searchables basket|boulder|burrow|fence|hay|hut|pail|rake|spiderweb|statue|stones|straw|wagon|wheel|wood
 var landmarks altar|basket|boulder|burrow|fence|hay|hut|pail|rake|scarecrow|spiderweb|statue|stones|straw|wagon|wheel|wood
 var junk_list
@@ -80,7 +83,7 @@ action goto done when "leads you through the twisting passages and brings you to
 action put #echo >talk #FFFF00 $1 minutes remaining! when "^A barefoot Halfling trots up to you and says, .Hey, just to let you know you've only got (.+) minutes? of time left"
 action put #echo >talk #00FF00 +$1 Kernels!!;math TotalKernels add $1 when "He dumps (\d+) silver kernels into your bottle and says"
 action put #echo >talk #FFFF00 +20 Kernels from $1 KILL!;math TotalKernels add 20 when "^A shower of tiny silver kernels falls from the (Spider|Scarecrow)"
-action put #echo >talk Boss $1 Active!;put #var AlreadyLooted False when "^You hear sinister laughter as the (Scarecrow) freely roams the ripened field of the Corn Maze!$|^You hear sinister laughter as the (Scarecrow) invades the Corn Maze!|^A hissing sound echoes through the Corn Maze as Harawep's (Spider) makes its appearance!|^You hear hissing noises as Harawep's (Spider) freely roams the green growth of the Corn Maze!"
+action put #echo >talk Boss $1 Active! when "^You hear sinister laughter as the (Scarecrow) freely roams the ripened field of the Corn Maze!$|^You hear sinister laughter as the (Scarecrow) invades the Corn Maze!|^A hissing sound echoes through the Corn Maze as Harawep's (Spider) makes its appearance!|^You hear hissing noises as Harawep's (Spider) freely roams the green growth of the Corn Maze!"
 action var $1 $2;put #echo >User #FF6666 %scriptname - SET [$1] TO [$2] when "^-setlocal %scriptname (\S+) (.*)"
 
 #### ABORTS and PREP ####
@@ -122,11 +125,18 @@ doWhat:
     waitforre ^A good positive attitude never hurts
     }
   put #var halfling $roomid
+  if (("%task" = "poke") && (("$guild" = "Empath") || ($mazeCombat)) && (!$mazeLooted)) then {gosub call mazeloot poke}
   gosub call maze%task
   eval %taskTime $gametime - %taskTimeVar
   var task
   var taskTimeVar
   if !matchre("$monsterlist", "cheerful Halfling") then {gosub findTaskGiver}
+  if ($mazeTimer < $unixtime) then {
+    put #printbox I set a timer for 58 minuntes when we started
+    put #printbox Don't turn in that last task for 2 kernels when you can turn it in for 10!
+    put #printbox Just wait it out, or type YES to roll the dice for anothe scream task.
+    waitforre ^A good positive attitude never hurts
+  }
   goto ask
 ####
 
@@ -190,6 +200,15 @@ findTaskGiver:
 
 #### BE A LOVER NOT A FIGHTER ####
 kill:
+  if ($mazeCombat) then {
+    put #printbox Alright go kill some stuff.
+    waitfor ASK HALFLING ABOUT TASK again\.$
+    eval killTime $gametime - %taskTimeVar
+    var task
+    var taskTimeVar
+    if !matchre("$monsterlist", "cheerful Halfling") then {gosub findTaskGiver}
+    goto ask
+  }
   if ($roundtime > 0) then {pause $pauseTime}
   if (($webbed) || ($stunned)) then {pause 0.1}
   matchre kill \.\.\.wait|^Sorry,|TASK CANCEL again
@@ -208,9 +227,9 @@ goloot:
   goto killPause
 
 lootrun:
-  if matchre("$AlreadyLooted", "true|True|TRUE") then {goto bossrun}
+  if matchre($mazeLooted) then {goto bossrun}
   gosub call mazeloot
-  put #var AlreadyLooted True
+  put #var mazeLooted 1
   goto killPause
 
 bossrun:

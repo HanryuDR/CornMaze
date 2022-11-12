@@ -28,6 +28,8 @@ put #echo >User #FF00FF >%SCRIPTNAME: $time
 var totaltime $gametime
 var searches 0
 var finds 0
+var poke 0
+if contains("%0", "poke") then {var poke 1}
 
 Start:
   put #goto 39
@@ -582,7 +584,7 @@ put #var roomid 2
 done:
   gosub clear
   delay 0.1
-  put #var AlreadyLooted True
+  put #var mazeLooted 1
   put #echo >talk Finding the halfling, He was in room $halfling
 #  put #goto $halfling from 2
   put #goto $halfling
@@ -612,6 +614,7 @@ remover:
   if (!$standing) then {gosub stand}
   if matchre("$roomobjs", "(?:the Scarecrow|Harawep's Spider)(?! (?:which|that) appears dead| \(dead\))") then {gosub KillBoss}
   matchre remover \.\.\.wait|^Sorry,|You stand
+  if (%poke) then {matchre poke (Halfling|Gor'Tog)}
   matchre search \b(altar|basket|boulder|burrow|fencepost|hay|hut|pail|rake|spiderweb|statue|stones|straw|wagon|wheelbarrow|wood)\b
   matchre returner ^Obvious
   match moveError You can't go there.
@@ -712,4 +715,24 @@ retreat:
   match remover You are already as far away as you can get!
   put retreat
   matchwait
+####
+
+#### POKE? REALLY? ####
+poke:
+  var pokeVar $1
+  delay 0.1
+  if ($roomid != %pathID[%c]) then {put #var roomid %pathID[%c]}
+  put #class -combat
+repoke:
+  matchre repoke ^\.\.\.wait|^Sorry,
+  match pokePause You think that definitely counted toward your
+  matchre returner ^What were you referring|^You're pretty sure you're|^A cheerful Halfling squirms and laughs at
+  put poke %pokeVar
+  matchwait 3
+  goto repoke
+pokePause:
+  delay $pauseTime
+  pause $pauseTime
+  put #class +combat
+  return
 ####
