@@ -75,12 +75,10 @@ Start:
 done:
   gosub clear
   put #var roomid 49
-  delay 0.2
   put #printbox CURRENT ROOM: $roomid, PATHID: pathID[%c], HALFLING: $halfling
-#  put #goto $halfling from %pathID[%c]
   put #goto $halfling
   waitforre You are already here|YOU HAVE ARRIVED!
-  delay 0.2
+  delay $pauseTime
   put #var roomid $halfling
 
 end:

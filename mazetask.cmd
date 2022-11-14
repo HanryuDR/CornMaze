@@ -49,6 +49,7 @@ HeadofMaze:
   var c 0
   put %path[%c]
   waitforre You are already here|YOU HAVE ARRIVED!|a tall Merelew
+  delay $pauseTime
   if !matchre("$monsterlist", "Merelew") then {
     put #printbox Navigate it to the head of the maze!
     waitfor a tall Merelew
@@ -72,11 +73,10 @@ loop:
 
 done:
   gosub clear
-  delay $pauseTime
   put #printbox CURRENT ROOM: $roomid, PATHID: pathID[%c], HALFLING: $halfling
   put #goto $halfling
   waitforre You are already here|YOU HAVE ARRIVED!
-  delay 0.2
+  delay $pauseTime
   put #var roomid $halfling
   timer stop
   eval seconds round(%t) % 60
@@ -123,7 +123,7 @@ trapDisarm:
   if ($roundtime > 0) then {pause $pauseTime}
   if (($webbed) || ($stunned)) then {pause 0.1}
   matchre trapDisarm ^\.\.\.wait|^Sorry,|^You are still stun|^You can't do that while entangled
-  matchre return ^You manage to|^You'll need to SEARCH
+  matchre return ^You manage to|^You'll need to SEARCH|^You guess this still counts
   put disarm trap
   matchwait 2
   goto trapDisarm
