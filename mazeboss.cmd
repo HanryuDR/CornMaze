@@ -14,6 +14,8 @@
 #   Update for O2
 # 2022-11-10
 #   into the repo
+# 2022-11-14
+#   Now using include
 #debug 5
 
 #### LOAD VARS ####
@@ -35,11 +37,11 @@ Start:
   var c 0
   put %path[%c]
   waitforre You are already here|YOU HAVE ARRIVED!
-  delay 0.2
+  delay $pauseTime
   if !matchre("$roomobjs", "tunnel") then {
     put #printbox Navigate it to the tunnel, room 290!|Type YES
     waitfor A good positive
-    delay 0.2
+    delay $pauseTime
     }
   put #var roomid %pathID[%c]
 
@@ -56,7 +58,7 @@ moveLoop:
     }
   if contains("%path[%c]", "#goto") then {
 # I've got to subtract one to ENSURE that roomid = the room we're in
-    delay 0.2
+    delay $pauseTime
     math c subtract 1
     put #var roomid %pathID[%c]
     math c add 1
@@ -69,85 +71,12 @@ moveLoop:
   goto moveLoop
 ####
 
-#### MOVER ####
-engaged:
-  gosub retreat
-mover:
-remover:
-  if (!$standing) then {gosub stand}
-  if ($roundtime > 0) then {pause $pauseTime}
-  if (($webbed) || ($stunned)) then {pause 0.1}
-  matchre remover \.\.\.wait|^Sorry,|You must be standing
-  match stun You are still stunned.
-  matchre returner ^Obvious
-  match moveError You can't go there.
-  match engaged You are engaged
-  put %path[%c]
-  matchwait
-
-stun:
-  pause
-  if ($roundtime > 0) then {pause $pauseTime}
-  if (($webbed) || ($stunned)) then {pause 0.1}
-  if ($stunned) then {goto stun}
-  goto remover
-
-KillBoss:
-  put #var roomid %pathID[%c]
-  echo ********************************
-  echo **  Time for Combat!          **
-  echo **  Type HUM HAPPY when done  **
-  echo ********************************
-  waitforre You hum happily to yourself|^A shower of tiny silver kernels falls from the
-  put #script abort repeat
-  delay 0.1
-  if ($roundtime > 0) then {pause $pauseTime}
-  send loot treasure
-  wait
-  if ("$righthand" != "Empty") then {send stow right}
-  if ("$lefthand" != "Empty") then {send stow left}
-  goto retreat
-
-moveError:
-  echo **********************************
-  echo **  You screwed up the script!  **
-  echo **  Try to get back on track.   **
-  echo **  Type YES to continue.       **
-  echo **********************************
-  waitfor A good positive attitude never hurts.
-  goto remover
-####
-
-#### STAND ####
-stand:
-  if ($roundtime > 0) then {pause $pauseTime}
-  if (($webbed) || ($stunned)) then {pause 0.1}
-  matchre stand \.\.\.wait|^Sorry,|cannot manage to stand\.|The weight of all your possessions
-  matchre return You stand|You are already standing
-  put stand
-  matchwait
-####
-
-#### RETREAT and MOVE ####
-retreat:
-  if ($roundtime > 0) then {pause $pauseTime}
-  if (($webbed) || ($stunned)) then {pause 0.1}
-  match retreat ...wait
-  match retreat Sorry,
-  match retreat You retreat back
-  match returner You retreat from combat
-  match returner You are already as far away as you can get!
-  put retreat
-  matchwait
-####
-
 done:
   gosub clear
-  delay 0.1
   put #printbox CURRENT ROOM: $roomid, HALFLING: $halfling
   put #goto $halfling
   waitforre You are already here|YOU HAVE ARRIVED!
-  delay 0.1
+  delay $pauseTime
   put #var roomid $halfling
 
 end:
@@ -164,7 +93,5 @@ end:
   put #parse ** MAZETASK DONE **
   exit
 
-#### RETURN ####
-return:
-returner:
-  return
+####  COMMON SUBROUTINES  ####
+include mazeINC
