@@ -22,6 +22,8 @@
 #   Update for O2
 # 2022-11-10
 #   into the repo
+# 2022-11-14
+#   Now using include
 #debug 5
 
 #### LOAD VARS ####
@@ -43,11 +45,10 @@ Start:
   var c 0
   put %path[%c]
   waitforre You are already here|YOU HAVE ARRIVED!
-  delay 0.2
+  delay $pauseTime
   if !matchre("$roomobjs", "tunnel") then {
     put #printbox Navigate it to the tunnel, room 39!
     waitfor You also see a small tunnel through the corn.
-    delay 0.2
     }
   put #var roomid %pathID[%c]
 
@@ -61,84 +62,19 @@ moveLoop:
     put #var roomid 226
     goto done
     }
-  if contains(%path[%c], " ") then {
+  if contains(%path[%c], "#goto") then {
     put %path[%c]
     waitforre You are already here\!|YOU HAVE ARRIVED!
     } else {
-    gosub mover
+    gosub mover %path[%c]
     }
   goto moveLoop
-####
-
-#### MOVER ####
-engaged:
-  gosub retreat
-mover:
-remover:
-  if ($roundtime > 0) then {pause $pauseTime}
-  if (($webbed) || ($stunned)) then {pause 0.1}
-  if ($standing != 1) then {gosub stand}
-  matchre remover ^\.\.\.wait|^Sorry,|You must be standing
-  if (!$mazeLooted) then {matchre search \b(altar|basket|boulder|burrow|fencepost|hay|hut|pail|rake|spiderweb|statue|stone|straw|wagon|wheelbarrow|wood)\b}
-  match stun You are still stunned.
-  matchre returner ^Obvious
-  match moveError You can't go there.
-  match engaged You are engaged
-  put %path[%c]
-  matchwait
-
-stun:
-  pause
-  if ($stunned) then {goto stun}
-  goto remover
-
-KillBoss:
-  echo ********************************
-  echo **  Time for Combat!          **
-  echo **  Type HUM HAPPY when done  **
-  echo ********************************
-  waitforre You hum happily to yourself|^A shower of tiny silver kernels falls from the
-  put #script abort repeat
-  pause 0.1
-  send loot treasure
-  wait
-  if ("$righthand" != "Empty") then {send stow right}
-  if ("$lefthand" != "Empty") then {send stow left}
-  goto retreat
-
-moveError:
-  echo **********************************
-  echo **  You screwed up the script!  **
-  echo **  Try to get back on track.   **
-  echo **  Type YES to continue.       **
-  echo **********************************
-  waitfor A good positive attitude never hurts.
-  goto remover
-####
-
-#### STAND ####
-stand:
-  matchre stand \.\.\.wait|^Sorry,|cannot manage to stand\.|The weight of all your possessions
-  matchre return You stand|You are already standing
-  put stand
-  matchwait
-####
-
-#### RETREAT and MOVE ####
-retreat:
-  match retreat ...wait
-  match retreat Sorry,
-  match retreat You retreat back
-  match returner You retreat from combat
-  match returner You are already as far away as you can get!
-  put retreat
-  matchwait
 ####
 
 #### POKE? REALLY? ####
 poke:
   var pokeVar $1
-  delay 0.1
+  delay $pauseTime
   if ($roomid != %pathID[%c]) then {put #var roomid %pathID[%c]}
   put #class -combat
 repoke:
@@ -166,51 +102,13 @@ AdvancePathIDValue:
   return
 ####
 
-#### SEARCH LANDMARKS FOR HAWT LEWTZ ####
-search:
-  var searchitem $1
-  if matchre("$roomobjs", "(?:the Scarecrow|Harawep's Spider)(?! (?:which|that) appears dead| \(dead\))") then {gosub KillBoss}
-  math searches add 1
-research:
-  matchre research ^\.\.\.wait|^Sorry,
-  matchre returner Sadly, you don't find|already been picked clean|The only thing you're|You find nothing|I could not find
-  matchre stow You manage to find (.+)!
-  put search %searchitem
-  matchwait
-
-stow:
-  put #echo >talk Searching %searchitem...
-  put #echo >talk #00FF00     You found $1
-  math finds add 1
-restow:
-  matchre restow ^\.\.\.wait|^Sorry,
-  matchre returner ^You put|^But that|^That can't be|^Stow what
-  match stowError2 You need a free hand to pick that up.
-  matchre stowError3 too (long|wide) to fit in|There isn't any more room|There's no room in the
-  put put $righthandnoun in my $container_maze
-  matchwait
-stowError1:
-stowError2:
-  echo **********************************
-  echo **  Fix the error and type YES  **
-  echo **********************************
-  waitfor positive attitude
-  return
-stowError3:
-  put put $righthandnoun in my hip pouch
-  waitfor You put
-  return
-####
-
 done:
   put #class +combat
   gosub clear
-  delay 0.2
   put #printbox CURRENT ROOM: $roomid, PATHID: pathID[%c], HALFLING: $halfling
-#  put #goto $halfling from %pathID[%c]
   put #goto $halfling
   waitforre You are already here|YOU HAVE ARRIVED!
-  delay 0.2
+  delay $pauseTime
   put #var roomid $halfling
 
 end:
@@ -228,7 +126,22 @@ end:
   put #parse ** MAZETASK DONE **
   exit
 
-#### RETURN ####
-return:
-returner:
-  return
+####  COMMON SUBROUTINES  ####
+include mazeINC
+
+#### Kill the boss! ####
+KillBoss:
+  var bossTimer $gametime
+  put #printbox Time for Combat!|Type HUM HAPPY when done
+  waitforre You hum happily to yourself|^A shower of tiny silver kernels falls from the
+  put #script abort repeat
+  eval killTimer $gametime - %bossTimer
+  if (%bossTimer > 15) then {put #echo >talk #FF0000 Killing the boss took %bossTimer seconds}
+  delay $pauseTime
+  if ($roundtime > 0) then {pause $pauseTime}
+  send loot treasure
+  wait
+  if ("$righthand" != "Empty") then {send stow right}
+  if ("$lefthand" != "Empty") then {send stow left}
+  goto retreat
+####

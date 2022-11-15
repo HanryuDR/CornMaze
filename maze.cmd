@@ -36,6 +36,8 @@
 # 2022-11-12
 #   added gaming the system for more kernles as the last task
 #   Address issues 2 and 3
+# 2022-11-14
+#   Slight adjustment to the way completed tasks get counted
 #debug 5
 
 #### LOAD VARS ####
@@ -72,6 +74,7 @@ var landmarks altar|basket|boulder|burrow|fence|hay|hut|pail|rake|scarecrow|spid
 var junk_list
 #for early shutdown of script
 var Kill 0
+var timeRemaining 60
 
 #### PATHS ####
 var path #goto 2|e|e|e|e|e|e|e|sw|n|w|s|w|w|s|e|s|ne|w|w|s|w|n|n|w|w|s|s|e|n|e|s|e|s|sw|n|w|w|s|e|s|n|w|s|s|s|s|s|s|s|e|w|s|e|e|w|s|w|s
@@ -80,10 +83,10 @@ eval moveCount countsplit("%path", "|")
 
 #### LOAD ACTIONS ####
 action goto done when "leads you through the twisting passages and brings you to the exit"
-action put #echo >talk #FFFF00 $1 minutes remaining! when "^A barefoot Halfling trots up to you and says, .Hey, just to let you know you've only got (.+) minutes? of time left"
-action put #echo >talk #00FF00 +$1 Kernels!!;math TotalKernels add $1 when "He dumps (\d+) silver kernels into your bottle and says"
+action put #echo >talk #FFFF00 $1 minutes remaining!;var timeRemaining $1 when "^A barefoot Halfling trots up to you and says, .Hey, just to let you know you've only got (.+) minutes? of time left"
+action put #echo >talk #00FF00 +$1 Kernels!!;math TotalKernels add $1;math good_task add 1 when "He dumps (\d+) silver kernels into your bottle and says"
 action put #echo >talk #FFFF00 +20 Kernels from $1 KILL!;math TotalKernels add 20 when "^A shower of tiny silver kernels falls from the (Spider|Scarecrow)"
-action put #echo >talk Boss $1 Active! when "^You hear sinister laughter as the (Scarecrow) freely roams the ripened field of the Corn Maze!$|^You hear sinister laughter as the (Scarecrow) invades the Corn Maze!|^A hissing sound echoes through the Corn Maze as Harawep's (Spider) makes its appearance!|^You hear hissing noises as Harawep's (Spider) freely roams the green growth of the Corn Maze!"
+action put #echo >talk #FF0000 Boss $1 Active! when "^You hear sinister laughter as the (Scarecrow) freely roams the ripened field of the Corn Maze!$|^You hear sinister laughter as the (Scarecrow) invades the Corn Maze!|^A hissing sound echoes through the Corn Maze as Harawep's (Spider) makes its appearance!|^You hear hissing noises as Harawep's (Spider) freely roams the green growth of the Corn Maze!"
 action var $1 $2;put #echo >User #FF6666 %scriptname - SET [$1] TO [$2] when "^-setlocal %scriptname (\S+) (.*)"
 
 #### ABORTS and PREP ####
@@ -99,17 +102,22 @@ ask:
   matchre ask ^\.\.\.wait|^Sorry,|^You are still stun|^You can't do that while entangled
   match HeadOfMaze To whom are you
   match killPause You'll need to wait a bit before you can have another one.
-  matchre doWhat ^(?:A cheerful Halfling smiles happily at you and replies|The Halfling looks at a scrap of paper in his pocket, then nods).+(forage|grasshopper|kill|landmark|mice|poke|scarecrow|scream|token|traps|weeds)
+  matchre onTask ^A cheerful Halfling smiles happily at you and replies, .You.re already on a task.+(forage|grasshopper|kill|landmark|mice|poke|scarecrow|scream|token|traps|weeds)
+  matchre doWhat ^The Halfling looks at a scrap of paper in his pocket, then nods.+(forage|grasshopper|kill|landmark|mice|poke|scarecrow|scream|token|traps|weeds)
   put ask halfling about task
   put ask halfling for task
   matchwait
+onTask:
+  if contains("$1", "$") then {goto ask}
+  var task $1
+  goto startTask
 doWhat:
   if contains("$1", "$") then {goto ask}
   var task $1
   math %task add 1
   math task_count add 1
   var list_of_task %list_of_task|%task
-  eval good_task %task_count - %kill - 1
+startTask:
   var taskTimeVar $gametime
   put #echo >talk #FFFF00 Maze Task: %task, Assigned: %task_count / Canceled: %kill / Finished: %good_task
   if ("%task" = "kill") then {goto kill}
@@ -127,14 +135,12 @@ doWhat:
   put #var halfling $roomid
   if (("%task" = "poke") && (("$guild" = "Empath") || ($mazeCombat)) && (!$mazeLooted)) then {gosub call mazeloot poke}
   gosub call maze%task
-  eval %taskTime $gametime - %taskTimeVar
+  eval %taskTime %%taskTime + ($gametime - %taskTimeVar)
   var task
   var taskTimeVar
   if !matchre("$monsterlist", "cheerful Halfling") then {gosub findTaskGiver}
-  if ($mazeTimer < $unixtime) then {
-    put #printbox I set a timer for 58 minuntes when we started
-    put #printbox Don't turn in that last task for 2 kernels when you can turn it in for 10!
-    put #printbox Just wait it out, or type YES to roll the dice for anothe scream task.
+  if (%timeRemaining < 4) then {
+    put #printbox Don't turn in that last task for 2 kernels when you can turn it in for 10!|Just wait it out, or type YES to roll the dice for anothe scream task.
     waitforre ^A good positive attitude never hurts
   }
   goto ask
@@ -156,7 +162,7 @@ HeadOfMaze:
     put #goto 2
     waitforre You are already here|YOU HAVE ARRIVED!|a tall Merelew
     }
-  delay 0.2
+  delay $pauseTime
   if !matchre("$monsterlist", "Merelew") then {
     put #printbox Navigate to the head of the maze!
     waitfor tall Merelew
@@ -200,15 +206,7 @@ findTaskGiver:
 
 #### BE A LOVER NOT A FIGHTER ####
 kill:
-  if ($mazeCombat) then {
-    put #printbox Alright go kill some stuff.
-    waitfor ASK HALFLING ABOUT TASK again\.$
-    eval killTime $gametime - %taskTimeVar
-    var task
-    var taskTimeVar
-    if !matchre("$monsterlist", "cheerful Halfling") then {gosub findTaskGiver}
-    goto ask
-  }
+  if ($mazeCombat) then {goto murder}
   if ($roundtime > 0) then {pause $pauseTime}
   if (($webbed) || ($stunned)) then {pause 0.1}
   matchre kill \.\.\.wait|^Sorry,|TASK CANCEL again
@@ -241,7 +239,7 @@ killPause:
     eval pauseTime %pauseTime - $gametime
     put #printbox Pausing %pauseTime seconds
     pause %pauseTime
-    eval killTime $gametime - %taskTimeVar
+    eval killTime %killTime + ($gametime - %taskTimeVar)
   }
   else {
     pause 1
@@ -299,3 +297,29 @@ goto Lost
 
 ####  COMMON SUBROUTINES  ####
 include mazeINC
+
+#### Be a fighter, not a lover ####
+murder:
+  put #printbox Alright go kill some stuff.
+  waitforre ASK HALFLING ABOUT TASK again\.$
+  put #script abort repeat
+  delay $pauseTime
+  if ($roundtime > 0) then {pause $pauseTime}
+  send loot treasure
+  wait
+  if ("$righthand" != "Empty") then {send stow right}
+  if ("$lefthand" != "Empty") then {send stow left}
+  gosub retreat
+  put #printbox CURRENT ROOM: $roomid, HALFLING: $halfling
+  put #goto $halfling
+  waitforre You are already here|YOU HAVE ARRIVED!
+  delay $pauseTime
+  put #var roomid $halfling
+  eval temp $gametime - %taskTimeVar
+  put #echo >talk #FF0000 Killing 10 things took %temp seconds
+  math killTime add %temp
+  var task
+  var taskTimeVar
+  if !matchre("$monsterlist", "cheerful Halfling") then {gosub findTaskGiver}
+  goto ask
+####
