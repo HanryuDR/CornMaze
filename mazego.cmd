@@ -38,8 +38,5 @@ if ("$lefthand" != "Empty") then {send stow left}
 put #var roomid 2
 pause 0.1
 put #echo >talk #00FF00 Started Maze @ $time with %startKernel kernels
-#set a timer for 58 minuntes from now
-#don't turn in that last task for 2 kernels when you can turn it in for 10
-put #eval mazeTimer $unixtime + 3480
 put .maze
 exit

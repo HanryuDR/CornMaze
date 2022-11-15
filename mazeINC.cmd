@@ -151,21 +151,3 @@ callError:
   put #printbox CALL ERROR|matchwait fell thru|%CALLVAR|%callVar
   goto callError
 ####
-
-#### Kill the boss! ####
-KillBoss:
-  put #var roomid %pathID[%c]
-  var bossTimer $gametime
-  put #printbox Time for Combat!|Type HUM HAPPY when done
-  waitforre You hum happily to yourself|^A shower of tiny silver kernels falls from the
-  put #script abort repeat
-  eval killTimer $gametime - %bossTimer
-  if (%bossTimer > 15) then {put #echo >talk #FF0000 Killing the boss took %bossTimer seconds}
-  delay $pauseTime
-  if ($roundtime > 0) then {pause $pauseTime}
-  send loot treasure
-  wait
-  if ("$righthand" != "Empty") then {send stow right}
-  if ("$lefthand" != "Empty") then {send stow left}
-  goto retreat
-####

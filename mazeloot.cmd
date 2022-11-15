@@ -38,6 +38,7 @@ Start:
   if !matchre("$roomobjs", "tunnel") then {
     put #printbox  Navigate it to the tunnel!
     waitfor You also see a small tunnel through the corn.
+    delay 0.2
     }
   put #var roomid 39
 
@@ -582,11 +583,13 @@ put #var roomid 2
 
 done:
   gosub clear
+  delay 0.1
   put #var mazeLooted 1
   put #echo >talk Finding the halfling, He was in room $halfling
+#  put #goto $halfling from 2
   put #goto $halfling
   waitforre You are already here|YOU HAVE ARRIVED!|^A good positive
-  delay $pauseTime
+  delay 0.1
   put #var roomid $halfling
 
 end:
@@ -601,7 +604,6 @@ end:
   put #printbox %SCRIPTNAME took %minutes:%seconds (min) to find %finds after searching %searches times!
   put #echo >user <%SCRIPTNAME: %minutes:%seconds (min) %finds items / %searches searches
   put #parse ** MAZETASK DONE **
-abort:
   exit
 
 mover:
@@ -620,22 +622,21 @@ remover:
   put %direction
   matchwait
 
-#### Kill the boss! ####
 KillBoss:
-  var bossTimer $gametime
-  put #printbox Time for Combat!|Type HUM HAPPY when done
+  echo ********************************
+  echo **  Time for Combat!          **
+  echo **  Type HUM HAPPY when done  **
+  echo ********************************
   waitforre You hum happily to yourself|^A shower of tiny silver kernels falls from the
   put #script abort repeat
-  eval killTimer $gametime - %bossTimer
-  if (%bossTimer > 15) then {put #echo >talk #FF0000 Killing the boss took %bossTimer seconds}
-  delay $pauseTime
-  if ($roundtime > 0) then {pause $pauseTime}
+  pause 0.1
   send loot treasure
   wait
   if ("$righthand" != "Empty") then {send stow right}
   if ("$lefthand" != "Empty") then {send stow left}
-  goto retreat
-####
+  send retreat
+  send retreat
+  return
 
 moveError:
   echo **********************************
@@ -658,7 +659,6 @@ research:
   matchre research \.\.\.wait|^Sorry,
   matchre returner Sadly, you don't|has already been picked clean|The only thing you're going|You find nothing|I could not find
   matchre stow You manage to find (.+)!
-  matchre abort Roundtime: 
   put search %searchitem
   matchwait
 
@@ -720,7 +720,8 @@ retreat:
 #### POKE? REALLY? ####
 poke:
   var pokeVar $1
-  delay $pauseTime
+  delay 0.1
+  if ($roomid != %pathID[%c]) then {put #var roomid %pathID[%c]}
   put #class -combat
 repoke:
   matchre repoke ^\.\.\.wait|^Sorry,

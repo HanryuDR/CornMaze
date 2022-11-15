@@ -55,7 +55,7 @@ Start:
   var c 0
   put %path[%c]
   waitforre You are already here|YOU HAVE ARRIVED!|a tall Merelew
-  delay 0.2
+  delay $pauseTime
   if !matchre("$monsterlist", "Merelew") then {
     put #printbox Navigate it to the head of the maze!
     waitfor tall Merelew
@@ -77,11 +77,10 @@ loop:
 
 done:
   gosub clear
-  delay 0.2
   put #printbox CURRENT ROOM: $roomid, PATHID: pathID[%c], HALFLING: $halfling
   put #goto $halfling
   waitforre You are already here|YOU HAVE ARRIVED!
-  delay 0.2
+  delay $pauseTime
   put #var roomid $halfling
 
 end:
