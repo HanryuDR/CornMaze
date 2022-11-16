@@ -14,7 +14,7 @@
 #debug 5
 
 if matchre("%0", "help|HELP|Help|^$") then {
-  put #printbox # .mazetask (search|pull weeds|forage corn|wave(mice)|build scarecrow)|  designed to be called by .maze to use in the corn maze
+  put #printbox .mazetask (search;pull weeds;forage corn;wave(mice);build scarecrow)|  designed to be called by .maze to use in the corn maze
   goto end
   }
 

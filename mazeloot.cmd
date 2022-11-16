@@ -586,7 +586,6 @@ done:
   delay 0.1
   put #var mazeLooted 1
   put #echo >talk Finding the halfling, He was in room $halfling
-#  put #goto $halfling from 2
   put #goto $halfling
   waitforre You are already here|YOU HAVE ARRIVED!|^A good positive
   delay 0.1
@@ -622,21 +621,22 @@ remover:
   put %direction
   matchwait
 
+#### Kill the boss! ####
 KillBoss:
-  echo ********************************
-  echo **  Time for Combat!          **
-  echo **  Type HUM HAPPY when done  **
-  echo ********************************
+  var bossTimer $gametime
+  put #printbox Time for Combat!|Type HUM HAPPY when done
   waitforre You hum happily to yourself|^A shower of tiny silver kernels falls from the
   put #script abort repeat
-  pause 0.1
+  eval bossTimer $gametime - %bossTimer
+  if (%bossTimer > 15) then {put #echo >talk #FF0000 Killing the boss took %bossTimer seconds}
+  delay $pauseTime
+  if ($roundtime > 0) then {pause $pauseTime}
   send loot treasure
   wait
   if ("$righthand" != "Empty") then {send stow right}
   if ("$lefthand" != "Empty") then {send stow left}
-  send retreat
-  send retreat
-  return
+  goto retreat
+####
 
 moveError:
   echo **********************************

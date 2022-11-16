@@ -92,19 +92,22 @@ stun:
   if ($stunned) then {goto stun}
   goto remover
 
+#### Kill the boss! ####
 KillBoss:
-  echo ********************************
-  echo **  Time for Combat!          **
-  echo **  Type HUM HAPPY when done  **
-  echo ********************************
+  var bossTimer $gametime
+  put #printbox Time for Combat!|Type HUM HAPPY when done
   waitforre You hum happily to yourself|^A shower of tiny silver kernels falls from the
   put #script abort repeat
-  pause 0.1
+  eval bossTimer $gametime - %bossTimer
+  if (%bossTimer > 15) then {put #echo >talk #FF0000 Killing the boss took %bossTimer seconds}
+  delay $pauseTime
+  if ($roundtime > 0) then {pause $pauseTime}
   send loot treasure
   wait
   if ("$righthand" != "Empty") then {send stow right}
   if ("$lefthand" != "Empty") then {send stow left}
   goto retreat
+####
 
 moveError:
   echo **********************************
