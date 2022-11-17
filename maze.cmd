@@ -121,18 +121,18 @@ startTask:
   var taskTimeVar $gametime
   put #echo >talk #FFFF00 Maze Task: %task, Assigned: %task_count / Canceled: %kill / Finished: %good_task
   if ("%task" = "kill") then {goto kill}
+  if (($mazeConfirm) || ($roomid != %pathID[%c])) then {
+    put #printbox I think you and the TaskGiver are in roomid: $roomid|Room set correctly?|Type YES to go do the task.
+    waitforre ^A good positive attitude never hurts
+    }
 #find the index of the $halfling room
+  put #var halfling $roomid
   eval c replacere("%pathID", "\b$halfling\b.*", "")
   eval c count("%c", "|")
   if (%c >= %moveCount) then {
     put #printbox Halfling is not on the path!
     exit
     }
-  if (($mazeConfirm) || ($roomid != %pathID[%c])) then {
-    put #printbox I think the TaskGiver is in roomid: $roomid|pathID[c] = %pathID[%c]|Room set correctly?|Type YES to go do the task.
-    waitforre ^A good positive attitude never hurts
-    }
-  put #var halfling $roomid
   if (("%task" = "poke") && (("$guild" = "Empath") || ($mazeCombat)) && (!$mazeLooted)) then {gosub call mazeloot poke}
   gosub call maze%task
   eval %taskTime %%taskTime + ($gametime - %taskTimeVar)
@@ -152,6 +152,7 @@ done:
   pause 1
 end:
   put #printbox ~~FINISHED MAZE @ $time~~|Completed %task_count tasks.|  built %scarecrow scarecrows (%scarecrowTime)|  pull %weeds weeds (%weedsTime)|  disarmed %traps trap (%trapsTime)|  found %grasshopper grasshoppers (%grasshopperTime)|  found %token tokens (%tokenTime)|  foraged %forage corn (%forageTime)|  scared %mice mice (%miceTime)|  yelled %scream times (%screamTime)|  touched %landmark landmarks (%landmarkTime)|  poked %poke halflings (%pokeTime)|  wasted time = %kill (%killTime)|List of task: %list_of_task|TOTAL KERNELS EARNED: %TotalKernels
+  put #log >mazeruns.txt ~~FINISHED MAZE @ $date $time~~|Completed %task_count tasks.|  built %scarecrow scarecrows (%scarecrowTime)|  pull %weeds weeds (%weedsTime)|  disarmed %traps trap (%trapsTime)|  found %grasshopper grasshoppers (%grasshopperTime)|  found %token tokens (%tokenTime)|  foraged %forage corn (%forageTime)|  scared %mice mice (%miceTime)|  yelled %scream times (%screamTime)|  touched %landmark landmarks (%landmarkTime)|  poked %poke halflings (%pokeTime)|  wasted time = %kill (%killTime)|List of task: %list_of_task|TOTAL KERNELS EARNED: %TotalKernels
   exit
 ####
 

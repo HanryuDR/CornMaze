@@ -1,6 +1,6 @@
 #mazewalk.cmd
 # .mazetask (poke|loot|boss)
-#   handle poke, loot, boss
+#   handle poke, loot, boss, spider, scarecrow
 #   designed to be called by .maze to use in the corn maze
 #
 # written by Hanryu
@@ -9,10 +9,13 @@
 # This script is designed to use Oulander, http://outlanderapp.com
 # 2022-11-16
 #   initial release, merged poke/loot/boss
-#debug 5
+# 2022-11-17
+#hrm I need an elegant way to just target the scarecrow OR the spider
+#   ok call by name and target a boss
+debug 5
 
 if matchre("%0", "help|HELP|Help|^$") then {
-  put #printbox .mazewalk (poke;loot;boss)|  designed to be called by .maze to use in the corn maze
+  put #printbox .mazewalk (poke;loot;boss;spider;scarecrow)|  designed to be called by .maze to use in the corn maze
   goto end
   }
 
@@ -49,10 +52,23 @@ action goto end when "^A cheerful looking Halfling wearing a wide brimmed hat co
 action var done 1 when "ASK HALFLING ABOUT TASK again\.$"
 
 #### ABORTS and PREP ####
-goto activity
+var activity %0
+goto %activity
 boss:
-  var path %blight|#|%growth
-  var pathID %blight_pathID|#|%growth_pathID
+  var path %field|#|%growth
+  var pathID %field_pathID|#|%growth_pathID
+  eval moveCount countsplit("%path", "|")
+  goto Start
+spider:
+  var activity boss
+  var path %field
+  var pathID %field_pathID
+  eval moveCount countsplit("%path", "|")
+  goto Start
+scarecrow:
+  var activity boss
+  var path %growth
+  var pathID %growth_pathID
   eval moveCount countsplit("%path", "|")
   goto Start
 poke:
@@ -63,6 +79,7 @@ poke:
 loot:
   var path %leftwing|%rightwing|%field|%back1|%blight|%back2|%belly|%head|%growth|%labyrinth
   var pathID %leftwing_pathID|%rightwing_pathID|%field_pathID|%back1_pathID|%blight_pathID|%belly_pathID|%head_pathID|%growth_pathID|%labyrinth_pathID
+  eval moveCount countsplit("%path", "|")
   goto Start
 
 Start:
@@ -79,17 +96,13 @@ Start:
 
 #### MOVE around the Maze ###
 moveLoop:
-  if (matchre("$roomobjs", "(?:the Scarecrow|Harawep's Spider)(?! (?:which|that) appears dead| \(dead\))") && matchre("%activity", "boss")) then {gosub KillBoss}
-  if (matchre("$monsterlist", "(Halfling|Gor'Tog)") && matchre("%activity", "poke")) then {gosub poke $1}
+  if matchre("$roomobjs", "(?:the Scarecrow|Harawep's Spider)(?! (?:which|that) appears dead| \(dead\))") then {gosub KillBoss}
+  if (matchre("$monsterlist", "(Halfling|Gor'Tog)") && matchre("%activity", "poke")) then {gosub pokeHalfling $1}
   if (matchre("$roomobjs", "\b(altar|basket|boulder|burrow|fencepost|hay|hut|pail|rake|spiderweb|statue|stones|straw|wagon|wheelbarrow|wood)\b") && matchre("%activity", "loot")) then {gosub search $1}
   if ((%done) || (%c >= %moveCount)) then {goto done}
   math c add 1
-  if contains(%path[%c], "#goto") then {
-    put %path[%c]
-    waitforre You are already here\!|YOU HAVE ARRIVED!
-    } else {
-    gosub mover %path[%c]
-    }
+  if !contains(%pathID[%c], "#") then {gosub mover %path[%c]}
+  if ($roomid != %pathID[%c]) then {put #var roomid %pathID[%c]}
   goto moveLoop
 ####
 
@@ -122,7 +135,7 @@ end:
 include mazeINC
 
 #### POKE? REALLY? ####
-poke:
+pokeHalfling:
   var pokeVar &0
   delay 0.1
   if ($roomid != %pathID[%c]) then {put #var roomid %pathID[%c]}
