@@ -101,7 +101,7 @@ dropInviso:
   send shiver
   goto mover_retry
 moveError:
-  put #printbox You screwed up the script!Try to get back on track.|Type YES to continue.
+  put #printbox You screwed up the script!  Try to get back on track.|Type YES to continue.
   waitfor A good positive attitude never hurts.
   if ("$monsterlist", "Merelew") then {goto Start}
   return

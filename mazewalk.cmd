@@ -57,29 +57,29 @@ goto %activity
 boss:
   var path %field|#|%growth
   var pathID %field_pathID|#|%growth_pathID
-  eval moveCount countsplit("%path", "|")
+  eval moveCount count("%path", "|")
   goto Start
 spider:
   var activity boss
   var path %field
   var pathID %field_pathID
-  eval moveCount countsplit("%path", "|")
+  eval moveCount count("%path", "|")
   goto Start
 scarecrow:
   var activity boss
   var path %growth
   var pathID %growth_pathID
-  eval moveCount countsplit("%path", "|")
+  eval moveCount count("%path", "|")
   goto Start
 poke:
   var path %leftwing|#|%rightwing|#|%blight|#|%belly|#|%head
   var pathID %leftwing_pathID|#|%rightwing_pathID|#|%blight_pathID|#|%belly_pathID|#|%head_pathID
-  eval moveCount countsplit("%path", "|")
+  eval moveCount count("%path", "|")
   goto Start
 loot:
   var path %leftwing|%rightwing|%field|%back1|%blight|%back2|%belly|%head|%growth|%labyrinth
   var pathID %leftwing_pathID|%rightwing_pathID|%field_pathID|%back1_pathID|%blight_pathID|%belly_pathID|%head_pathID|%growth_pathID|%labyrinth_pathID
-  eval moveCount countsplit("%path", "|")
+  eval moveCount count("%path", "|")
   goto Start
 
 Start:
@@ -191,6 +191,7 @@ KillBoss:
   if ("$righthand" != "Empty") then {send stow right}
   if ("$lefthand" != "Empty") then {send stow left}
 # if you killed the spider (300+ numbered rooms), go looking for the scarecrow, otherwise, go home
+  if matchre("%0", "spider|scarecrow") then {goto done}
   if (%pathID[%c] < 290) then {goto done}
   gosub advancePath
   goto retreat
@@ -200,7 +201,7 @@ KillBoss:
 advancePath:
   if matchre("%path", "^.+?#\|(.+)") then {var path $1}
   if matchre("%pathID", "^.+?#\|(.+)") then {var pathID $1}
-  eval moveCount countsplit("%path", "|")
+  eval moveCount count("%path", "|")
   var c 0
   return
 ####

@@ -21,7 +21,7 @@ if matchre("%0", "help|HELP|Help|^$") then {
 #### LOAD VARS ####
 eval Scriptname titlecase(%scriptname)
 eval SCRIPTNAME tocaps(%scriptname)
-put #echo >User #FF00FF >%SCRIPTNAME: $time
+put #echo >User #FF00FF $time >%SCRIPTNAME
 timer start
 var path #goto 2|e|e|e|e|e|e|e|sw|n|w|s|w|w|s|e|s|ne|w|w|s|w|n|n|w|w|s|s|e|n|e|s|e|s|sw|n|w|w|s|e|s|n|w|s|s|s|s|s|s|s|e|w|s|e|e|w|s|w|s
 var pathID 2|3|4|5|6|7|8|9|10|8|7|16|18|11|12|19|20|17|19|12|13|21|22|23|24|25|26|27|28|29|22|21|13|14|15|30|31|32|33|34|35|34|33|36|37|38|39|40|41|42|43|42|44|45|46|45|47|48|49
@@ -84,8 +84,8 @@ done:
   eval minutes %t / 60
   eval minutes floor(%minutes)
   put #printbox %SCRIPTNAME took %minutes:%seconds (min)
-  put #echo >user <%SCRIPTNAME: %minutes:%seconds
-  put #echo >talk <%SCRIPTNAME: %minutes:%seconds
+  put #echo >user $time <%SCRIPTNAME: %minutes:%seconds (%t)
+  put #echo >talk <%SCRIPTNAME: %do took %minutes:%seconds
   put #parse ** MAZETASK DONE **
 end:
   exit
