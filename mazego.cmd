@@ -12,8 +12,8 @@
 
 var startKernel 0
 put ticket
-put yes
-waitforre Corn Maze - (\d*) kernels|A good positive
+put Encumbrance
+waitforre Corn Maze - (\d*) kernels|Encumbrance
 if ($1 > 0) then {var startKernel $1}
 
 send get my corn pass
